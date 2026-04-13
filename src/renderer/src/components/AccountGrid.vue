@@ -10,6 +10,13 @@
       <div class="card-header">
         <span class="account-name">{{ acc.name }}</span>
         <div class="actions-group">
+          <!-- Edit Button -->
+          <button class="btn btn-icon btn-edit" @click.stop="$emit('edit-name', acc)" title="修改备注">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </button>
           <!-- Ban Button -->
           <button class="btn btn-icon btn-ban" @click.stop="$emit('set-ban', acc)" title="设置封禁/防误触期">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -52,6 +59,7 @@ defineEmits<{
   (e: 'delete', id: string): void
   (e: 'add'): void
   (e: 'set-ban', account: any): void
+  (e: 'edit-name', account: any): void
 }>()
 
 // Used to force re-render statuses if time passes
@@ -177,6 +185,13 @@ const getStatusText = (acc: any) => {
 .btn-icon svg {
   width: 16px;
   height: 16px;
+}
+
+.btn-edit {
+  color: #3b82f6;
+}
+.btn-edit:hover {
+  background: rgba(59, 130, 246, 0.2);
 }
 
 .btn-ban {

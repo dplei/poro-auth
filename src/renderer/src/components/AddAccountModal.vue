@@ -127,28 +127,34 @@ const parsedAccounts = computed(() => {
   const options: Array<{ account: string; password: string; name: string; meta: string }> = []
 
   for (const line of lines) {
-    // 处理包含 ---- 的分隔（典型发货格式）
-    if (line.includes('----')) {
-      const parts = line.split('----').map((p) => p.trim())
-      if (parts.length >= 2) {
-        options.push({
-          account: parts[0],
-          password: parts[1],
-          name: parts.length > 2 ? parts[2] : '未命名账号',
-          meta: parts.slice(3).join(' | ')
-        })
+    // 提前清洗掉那些工作室自带的前缀词（如 账号信息：、密码:、大区： 等）
+    const cleanLine = line.replace(/(账号信息|账号|密码|游戏密码|大区|等级|角色|游戏名)[:：]?\s*/g, '')
+
+    // 采用宽泛的正则切片，支持多种乱七八糟的卖号文本间隔格式 (包括横杠、等号、竖线、逗号、空格)
+    // 注意：如果是类似 Yasuo#123，不要把 # 给切断掉
+    const parts = cleanLine.split(/[-=｜|,\s]+/).filter(Boolean)
+    
+    // 如果起码能提炼出账号和密码两个单元
+    if (parts.length >= 2) {
+      // 在原文本中嗅探是否有 Riot 规范的类似 艾欧尼亚巅峰#123 这种格式的角色 ID
+      const riotIdMatch = cleanLine.match(/([^\s|=-]+#[A-Za-z0-9]+)/)
+      
+      let candidateName = '未命名账号'
+      if (riotIdMatch) {
+         candidateName = riotIdMatch[1]
+      } else if (parts.length > 2) {
+         candidateName = parts[2]
       }
-    } else if (line.includes(' ')) {
-      // 简单兜底处理空格格式，假设首位纯数字是账号
-      const parts = line.split(/\s+/)
-      if (parts.length >= 2 && /^\d+$/.test(parts[0])) {
-        options.push({
-          account: parts[0],
-          password: parts[1],
-          name: parts.length > 2 ? parts[2] : '未命名账号',
-          meta: parts.slice(3).join(' | ')
-        })
-      }
+      
+      // 保险起见，强制剔除账号残留的一切非数字字符 (如标点符号等)
+      const safeAccount = parts[0].replace(/[^\d]/g, '')
+
+      options.push({
+        account: safeAccount,
+        password: parts[1],
+        name: candidateName,
+        meta: parts.slice(3).join(' ✧ ')
+      })
     }
   }
   return options

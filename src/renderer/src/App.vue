@@ -71,6 +71,20 @@ const handleSetBan = (acc: any) => {
   showBanModal.value = true
 }
 
+const showEditNameModal = ref(false)
+const editableAccountDetails = ref<{id: string, name: string} | null>(null)
+
+const handleEditName = (acc: any) => {
+  editableAccountDetails.value = { ...acc }
+  showEditNameModal.value = true
+}
+
+const submitEditName = async (newName: string) => {
+  if (!editableAccountDetails.value) return
+  const res = await window.api.updateAccountName(editableAccountDetails.value.id, newName)
+  if (res.success) loadAccounts()
+}
+
 const handleDeleteAccount = async (id: string) => {
   if (confirm('确认删除该账号？')) {
     const res = await window.api.deleteAccount(id)
@@ -199,6 +213,7 @@ const handleCancelWait = () => {
           @select="handleSelectAccount"
           @delete="handleDeleteAccount"
           @set-ban="handleSetBan"
+          @edit-name="handleEditName"
         />
       </div>
 
@@ -216,6 +231,23 @@ const handleCancelWait = () => {
         @close="showBanModal = false"
         @submit="handleAccountSubmit"
       />
+
+      <!-- Quick Edit Name Modal -->
+      <div v-if="showEditNameModal" class="modal-overlay" style="z-index: 2000; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display:flex; align-items:center; justify-content:center;" @click.self="showEditNameModal = false">
+        <div class="modal-content glass" style="width: 350px; background: #1e293b; padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+          <h3 style="margin-top: 0; margin-bottom: 1rem; color: white;">修改标识备注</h3>
+          <input 
+            v-model="editableAccountDetails!.name" 
+            style="width: 100%; padding: 0.75rem; border-radius: 6px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 1.5rem; outline: none;" 
+            placeholder="新的显示名称"
+            @keyup.enter="submitEditName(editableAccountDetails!.name); showEditNameModal = false"
+          />
+          <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button class="btn" style="background: rgba(255,255,255,0.1);" @click="showEditNameModal = false">放弃</button>
+            <button class="btn btn-primary" style="background: var(--primary-color);" @click="submitEditName(editableAccountDetails!.name); showEditNameModal = false">确定</button>
+          </div>
+        </div>
+      </div>
 
       <!-- Tuning Config Modal -->
       <FlowConfigModal

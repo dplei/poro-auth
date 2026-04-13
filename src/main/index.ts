@@ -123,6 +123,15 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.handle('update-account-name', (_, id: string, newName: string) => {
+    try {
+      accountManager.updateAccountName(id, newName)
+      return { success: true }
+    } catch (e: any) {
+      return { success: false, error: e.message }
+    }
+  })
+
   ipcMain.handle('start-login', async (event, id: string) => {
     try {
       const target = accountManager.getRawAccount(id)

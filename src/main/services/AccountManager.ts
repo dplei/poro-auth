@@ -135,6 +135,14 @@ export class AccountManager {
     target.bannedUntil = timestamp;
     this.save();
   }
+  public updateAccountName(id: string, newName: string) {
+    const arr = this.loadAccounts();
+    const target = arr.find(a => a.id === id);
+    if (!target) throw new Error('账号未找到');
+    
+    target.name = newName;
+    this.save();
+  }
 }
 
 export const accountManager = new AccountManager();
