@@ -1,5 +1,6 @@
 appId: com.poroauth.app
 productName: PoroAuth
+compression: maximum
 directories:
   buildResources: build
 files:
