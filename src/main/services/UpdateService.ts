@@ -1,10 +1,19 @@
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow } from 'electron'
+import * as fs from 'fs'
 import log from 'electron-log/main'
+import * as os from 'os'
+import * as path from 'path'
 import { autoUpdater } from 'electron-updater'
+
+// The cache dir name must match `updaterCacheDirName` in dev-app-update.yml
+const UPDATER_CACHE_DIR = 'poro-auth-updater'
 
 export class UpdateService {
   constructor() {
+    // Clean up leftover installer files from the previous update on every startup
+    this.cleanupOldUpdateCache()
+
     // Basic config
     autoUpdater.logger = log
     autoUpdater.autoDownload = false // Do not download automatically
@@ -15,6 +24,40 @@ export class UpdateService {
     }
 
     this.setupEvents()
+  }
+
+  /**
+   * electron-updater downloads the installer into the system temp directory
+   * (e.g. C:\Users\xxx\AppData\Local\Temp\poro-auth-updater\) and does NOT
+   * clean it up after a successful install. We do it ourselves on the next
+   * application startup so users don't accumulate stale files on their C drive.
+   */
+  private cleanupOldUpdateCache() {
+    try {
+      const cacheDir = path.join(os.tmpdir(), UPDATER_CACHE_DIR)
+      if (!fs.existsSync(cacheDir)) return
+
+      const files = fs.readdirSync(cacheDir)
+      let cleaned = 0
+
+      for (const file of files) {
+        // Only remove installer artifacts — leave any other files untouched
+        if (file.endsWith('.exe') || file.endsWith('.blockmap') || file.endsWith('.yml')) {
+          try {
+            fs.unlinkSync(path.join(cacheDir, file))
+            cleaned++
+          } catch {
+            // File might be locked by another process; skip silently
+          }
+        }
+      }
+
+      if (cleaned > 0) {
+        log.info(`[UpdateService] Cleaned up ${cleaned} old installer artifact(s) from cache.`)
+      }
+    } catch (err) {
+      log.warn('[UpdateService] Could not clean update cache:', err)
+    }
   }
 
   private setupEvents() {

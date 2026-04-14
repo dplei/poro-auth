@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CheckCircle } from 'lucide-vue-next'
 const props = defineProps<{
   show: boolean
   status: 'available' | 'downloading' | 'downloaded' | 'error' | null
@@ -74,20 +75,9 @@ const formatReleaseNotes = (notes: any) => {
           </div>
 
           <div v-if="status === 'downloaded'" class="success-message">
-            <svg
-              viewBox="0 0 24 24"
-              width="48"
-              height="48"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="color: #10b981; margin-bottom: 1rem"
-            >
-              <path d="M22 11.08V12a10 10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
+            <div class="check-circle-wrapper">
+              <CheckCircle :size="52" stroke-width="1.5" class="check-icon" />
+            </div>
             <p>更新包已准备就绪，重启立享新功能！</p>
           </div>
 
@@ -269,7 +259,24 @@ const formatReleaseNotes = (notes: any) => {
 
 .success-message {
   text-align: center;
-  padding: 2rem 0;
+  padding: 1.5rem 0;
+}
+
+.check-circle-wrapper {
+  display: inline-flex;
+  margin-bottom: 1rem;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.check-icon {
+  color: #10b981;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.4); }
+  80% { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .success-message p {

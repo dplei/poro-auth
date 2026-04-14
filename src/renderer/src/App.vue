@@ -238,10 +238,6 @@ const handleClose = () => window.api.closeWindow()
         PoroAuth <span class="tag">WeGame Edition</span>
       </div>
       <div class="window-controls">
-        <button v-if="hasUpdate" class="win-btn update-btn-pulse" title="有新版本可用！" @click="showUpdateModal = true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
-        
         <button class="win-btn" @click="handleMinimize">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
@@ -255,7 +251,33 @@ const handleClose = () => window.api.closeWindow()
       <div class="content-wrapper">
         <div class="section-title">
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
-            <h2 style="margin-bottom: 0;">通行名册</h2>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <h2 style="margin-bottom: 0;">通行名册</h2>
+              <button
+                v-if="hasUpdate"
+                class="update-badge"
+                title="有新版本可用，点击查看！"
+                @click="showUpdateModal = true"
+              >
+                <!-- Lucide ArrowUp icon -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="update-arrow-icon"
+                >
+                  <path d="M12 19V5" />
+                  <path d="M5 12l7-7 7 7" />
+                </svg>
+                有可用更新
+              </button>
+            </div>
             <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer;" @click="showConfigModal = true">
               ⚙️ 参数硬改调优
             </button>
@@ -444,15 +466,46 @@ const handleClose = () => window.api.closeWindow()
   color: white;
 }
 
-.update-btn-pulse svg {
+/* Update available badge - next to section title */
+.update-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.6rem 0.18rem 0.45rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 9999px;
   color: #10b981;
-  animation: pulseColor 2s infinite;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+  animation: badgeFloat 3s ease-in-out infinite;
+  /* Remove default button styles */
+  background-clip: padding-box;
+  -webkit-app-region: no-drag;
 }
 
-@keyframes pulseColor {
-  0% { opacity: 0.6; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0.6; transform: scale(0.95); }
+.update-badge:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  transform: scale(1.05);
+}
+
+.update-arrow-icon {
+  animation: arrowBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes badgeFloat {
+  0%, 100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.15); }
+  50% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.35); }
 }
 
 .app-title {
