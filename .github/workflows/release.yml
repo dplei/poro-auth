@@ -38,9 +38,10 @@ jobs:
         with:
           # 自动生成 release 页面
           generate_release_notes: true
-          # 提取打包出来的所有 exe 资产文件并附着到 Release 页面
+          # 提取打包出来的所有 exe、zip 以及必须的 latest.yml 给更新服务使用
           files: |
             dist/*.exe
             dist/*.zip
+            dist/latest*.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
