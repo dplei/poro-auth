@@ -195,7 +195,10 @@ const handleClose = () => window.api.closeWindow()
   <n-config-provider :locale="zhCN" :date-locale="dateZhCN" :theme="darkTheme">
     <!-- Drag header -->
     <header class="app-header">
-      <div class="app-title" style="padding-left: 1.5rem;">🚀 PoroAuth <span class="tag">WeGame Edition</span></div>
+      <div class="app-title" style="padding-left: 1.5rem;">
+        <img src="./assets/icon.png" alt="logo" style="width: 22px; height: 22px; border-radius: 4px; box-shadow: 0 0 4px rgba(0,0,0,0.3);" />
+        PoroAuth <span class="tag">WeGame Edition</span>
+      </div>
       <div class="window-controls">
         <button class="win-btn" @click="handleMinimize">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
