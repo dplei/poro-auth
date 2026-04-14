@@ -24,7 +24,9 @@ const api = {
   startLogin: (id: string) => ipcRenderer.invoke('start-login', id),
   onLoginProgress: (callback: (msg: string) => void) => {
     ipcRenderer.on('login-progress', (_event, msg) => callback(msg))
-  }
+  },
+  minimizeWindow: () => ipcRenderer.send('window-minimize'),
+  closeWindow: () => ipcRenderer.send('window-close')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

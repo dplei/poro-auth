@@ -20,6 +20,8 @@ declare global {
       saveFlowConfig: (conf: Record<string, number>) => Promise<{ success: boolean }>
       startLogin: (id: string) => Promise<{ success: boolean, error?: string }>
       onLoginProgress: (callback: (msg: string) => void) => void
+      minimizeWindow: () => void
+      closeWindow: () => void
     }
   }
 }

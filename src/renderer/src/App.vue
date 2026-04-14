@@ -186,13 +186,24 @@ const handleCancelWait = () => {
   isWaitingAnimation.value = false
   window.api.cancelStartWegame()
 }
+
+const handleMinimize = () => window.api.minimizeWindow()
+const handleClose = () => window.api.closeWindow()
 </script>
 
 <template>
   <n-config-provider :locale="zhCN" :date-locale="dateZhCN" :theme="darkTheme">
     <!-- Drag header -->
     <header class="app-header">
-      <div class="app-title">🚀 PoroAuth <span class="tag">WeGame Edition</span></div>
+      <div class="app-title" style="padding-left: 1.5rem;">🚀 PoroAuth <span class="tag">WeGame Edition</span></div>
+      <div class="window-controls">
+        <button class="win-btn" @click="handleMinimize">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <button class="win-btn close-btn-win" @click="handleClose">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
     </header>
 
     <main class="app-main">
@@ -332,7 +343,7 @@ const handleCancelWait = () => {
   -webkit-app-region: drag;
   display: flex;
   align-items: center;
-  padding: 0 1.5rem;
+  justify-content: space-between;
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(8px);
   position: fixed;
@@ -340,6 +351,40 @@ const handleCancelWait = () => {
   left: 0;
   right: 0;
   z-index: 50;
+}
+
+.window-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.win-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  width: 48px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.win-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.win-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.win-btn.close-btn-win:hover {
+  background: #e81123;
+  color: white;
 }
 
 .app-title {

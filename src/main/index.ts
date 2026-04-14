@@ -9,9 +9,11 @@ function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
+    title: 'PoroAuth',
+    frame: false,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon: icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -235,6 +237,15 @@ app.whenReady().then(() => {
   ipcMain.handle('save-flow-config', (_, newConfig: Record<string, number>) => {
     configManager.set('flowConfig', newConfig)
     return { success: true }
+  })
+
+  // Window frame controls
+  ipcMain.on('window-minimize', () => {
+    BrowserWindow.getFocusedWindow()?.minimize()
+  })
+
+  ipcMain.on('window-close', () => {
+    BrowserWindow.getFocusedWindow()?.close()
   })
 
   // ---/API Handlers ---
