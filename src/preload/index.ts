@@ -26,7 +26,25 @@ const api = {
     ipcRenderer.on('login-progress', (_event, msg) => callback(msg))
   },
   minimizeWindow: () => ipcRenderer.send('window-minimize'),
-  closeWindow: () => ipcRenderer.send('window-close')
+  closeWindow: () => ipcRenderer.send('window-close'),
+
+  // --- Auto Update API ---
+  checkUpdate: () => ipcRenderer.invoke('app-check-update'),
+  startDownloadUpdate: () => ipcRenderer.invoke('app-start-download-update'),
+  quitAndInstallUpdate: () => ipcRenderer.invoke('app-quit-and-install-update'),
+  
+  onUpdateAvailable: (callback: (info: any) => void) => {
+    ipcRenderer.on('update-available', (_e, info) => callback(info))
+  },
+  onUpdateProgress: (callback: (progress: any) => void) => {
+    ipcRenderer.on('update-progress', (_e, progress) => callback(progress))
+  },
+  onUpdateDownloaded: (callback: () => void) => {
+    ipcRenderer.on('update-downloaded', () => callback())
+  },
+  onUpdateError: (callback: (err: string) => void) => {
+    ipcRenderer.on('update-error', (_e, err) => callback(err))
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

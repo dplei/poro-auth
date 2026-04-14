@@ -22,6 +22,15 @@ declare global {
       onLoginProgress: (callback: (msg: string) => void) => void
       minimizeWindow: () => void
       closeWindow: () => void
+
+      // --- Auto Update API ---
+      checkUpdate: () => Promise<void>
+      startDownloadUpdate: () => Promise<void>
+      quitAndInstallUpdate: () => Promise<void>
+      onUpdateAvailable: (callback: (info: any) => void) => void
+      onUpdateProgress: (callback: (progress: any) => void) => void
+      onUpdateDownloaded: (callback: () => void) => void
+      onUpdateError: (callback: (error: string) => void) => void
     }
   }
 }

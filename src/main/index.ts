@@ -43,6 +43,7 @@ import { ddDriver } from './services/DDDriverService'
 import { loginFlowAction } from './services/LoginFlowAction'
 import { configManager } from './services/ConfigManager'
 import { wegameCoordinator } from './services/WegameCoordinator'
+import { updateService } from './services/UpdateService'
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -249,6 +250,32 @@ app.whenReady().then(() => {
   })
 
   // ---/API Handlers ---
+
+  // --- Auto Update Handlers ---
+  ipcMain.handle('app-check-update', async () => {
+    try {
+      await updateService.checkUpdate()
+      return { success: true }
+    } catch (e: any) {
+      console.error('[UpdateError]', e)
+      return { success: false, error: e.message }
+    }
+  })
+
+  ipcMain.handle('app-start-download-update', () => {
+    updateService.downloadUpdate()
+  })
+
+  ipcMain.handle('app-quit-and-install-update', () => {
+    updateService.quitAndInstall()
+  })
+
+  // Start initial check a few seconds after startup
+  setTimeout(() => {
+    updateService.checkUpdate().catch(err => {
+      console.warn('Silent startup update check failed:', err)
+    })
+  }, 3000)
 
   createWindow()
 

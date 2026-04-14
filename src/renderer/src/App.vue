@@ -5,6 +5,7 @@ import AccountGrid from './components/AccountGrid.vue'
 import AddAccountModal from './components/AddAccountModal.vue'
 import BanAccountModal from './components/BanAccountModal.vue'
 import FlowConfigModal from './components/FlowConfigModal.vue'
+import UpdateModal from './components/UpdateModal.vue'
 
 const accounts = ref<
   Array<{ id: string; name: string; account: string; bannedUntil?: number | null }>
@@ -38,7 +39,44 @@ onMounted(async () => {
   driverLoaded.value = await window.api.getDriverStatus()
   // 检查WeGame绑定状态
   wegameExePath.value = await window.api.getWegamePath()
+
+  // --- Auto Update Bindings ---
+  window.api.onUpdateAvailable((info) => {
+    updateInfo.value = info
+    hasUpdate.value = true
+    updateStatus.value = 'available'
+  })
+
+  window.api.onUpdateProgress((prog) => {
+    updateProgress.value = prog
+  })
+
+  window.api.onUpdateDownloaded(() => {
+    updateStatus.value = 'downloaded'
+  })
+
+  window.api.onUpdateError((err) => {
+    updateStatus.value = 'error'
+    updateErrorMessage.value = err
+  })
 })
+
+// Auto Update State
+const hasUpdate = ref(false)
+const showUpdateModal = ref(false)
+const updateInfo = ref<any>(null)
+const updateStatus = ref<'available' | 'downloading' | 'downloaded' | 'error' | null>(null)
+const updateProgress = ref<any>(null)
+const updateErrorMessage = ref('')
+
+const handleStartDownloadUpdate = () => {
+  updateStatus.value = 'downloading'
+  window.api.startDownloadUpdate()
+}
+
+const handleInstallUpdate = () => {
+  window.api.quitAndInstallUpdate()
+}
 
 const handleLinkDriver = async () => {
   const res = await window.api.selectAndLoadDriver()
@@ -200,6 +238,10 @@ const handleClose = () => window.api.closeWindow()
         PoroAuth <span class="tag">WeGame Edition</span>
       </div>
       <div class="window-controls">
+        <button v-if="hasUpdate" class="win-btn update-btn-pulse" title="有新版本可用！" @click="showUpdateModal = true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+        
         <button class="win-btn" @click="handleMinimize">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
@@ -267,6 +309,18 @@ const handleClose = () => window.api.closeWindow()
       <FlowConfigModal
         :show="showConfigModal"
         @close="showConfigModal = false"
+      />
+
+      <!-- Update/Download Modal -->
+      <UpdateModal
+        :show="showUpdateModal"
+        :status="updateStatus"
+        :update-info="updateInfo"
+        :progress="updateProgress"
+        :error-message="updateErrorMessage"
+        @close="showUpdateModal = false"
+        @download="handleStartDownloadUpdate"
+        @install="handleInstallUpdate"
       />
 
       <!-- Setup Overlay (Fullscreen Blocking) -->
@@ -388,6 +442,17 @@ const handleClose = () => window.api.closeWindow()
 .win-btn.close-btn-win:hover {
   background: #e81123;
   color: white;
+}
+
+.update-btn-pulse svg {
+  color: #10b981;
+  animation: pulseColor 2s infinite;
+}
+
+@keyframes pulseColor {
+  0% { opacity: 0.6; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.6; transform: scale(0.95); }
 }
 
 .app-title {
