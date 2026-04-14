@@ -30,7 +30,10 @@ jobs:
 
       - name: 🔨 Build Windows App
         # 这一步会执行我们 package.json 里的打包命令生成 exe
+        # GH_TOKEN 是 electron-builder 内部 GitHub Publisher 所需的认证 token
         run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🚀 Publish release
         uses: softprops/action-gh-release@v2
