@@ -135,6 +135,15 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.handle('update-last-login-time', (_, id: string, timestamp: number | null) => {
+    try {
+      accountManager.updateLastLoginTime(id, timestamp)
+      return { success: true }
+    } catch (e: any) {
+      return { success: false, error: e.message }
+    }
+  })
+
   ipcMain.handle('start-login', async (event, id: string) => {
     try {
       const target = accountManager.getRawAccount(id)

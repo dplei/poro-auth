@@ -4,10 +4,11 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: {
-      getAccounts: () => Promise<Array<{ id: string, name: string, account: string, bannedUntil?: number | null }>>
+      getAccounts: () => Promise<Array<{ id: string, name: string, account: string, bannedUntil?: number | null, lastLoginTime?: number | null }>>
       addAccount: (name: string, acc: string, pass: string) => Promise<{ success: boolean, id?: string, error?: string }>
       deleteAccount: (id: string) => Promise<{ success: boolean }>
       updateAccountName: (id: string, newName: string) => Promise<{ success: boolean, error?: string }>
+      updateLastLoginTime: (id: string, timestamp: number | null) => Promise<{ success: boolean, error?: string }>
       setBanTime: (id: string, timestamp: number | null) => Promise<{ success: boolean, error?: string }>
       getDriverStatus: () => Promise<boolean>
       selectAndLoadDriver: () => Promise<{ success: boolean, error?: string }>

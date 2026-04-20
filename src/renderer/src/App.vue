@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { NConfigProvider, zhCN, dateZhCN, darkTheme, createDiscreteApi } from 'naive-ui'
+import { createDiscreteApi, darkTheme, dateZhCN, NConfigProvider, zhCN } from 'naive-ui'
+import { onMounted, ref } from 'vue'
 import AccountGrid from './components/AccountGrid.vue'
 import AddAccountModal from './components/AddAccountModal.vue'
 import BanAccountModal from './components/BanAccountModal.vue'
-import FlowConfigModal from './components/FlowConfigModal.vue'
-import UpdateModal from './components/UpdateModal.vue'
 import EditNameModal from './components/EditNameModal.vue'
+import FlowConfigModal from './components/FlowConfigModal.vue'
+import LoginOverlay from './components/LoginOverlay.vue'
 import PathManagementModal from './components/PathManagementModal.vue'
 import SetupOverlay from './components/SetupOverlay.vue'
-import LoginOverlay from './components/LoginOverlay.vue'
+import UpdateModal from './components/UpdateModal.vue'
+
+interface Account {
+  id: string
+  name: string
+  account: string
+  bannedUntil?: number | null
+  lastLoginTime?: number | null
+}
 
 // NaiveUI Discrete API — 用于在模板外触发 message / dialog
 const { message, dialog } = createDiscreteApi(['message', 'dialog'], {
@@ -17,9 +25,7 @@ const { message, dialog } = createDiscreteApi(['message', 'dialog'], {
 })
 
 // ── 账号列表 ────────────────────────────────────────────────
-const accounts = ref<
-  Array<{ id: string; name: string; account: string; bannedUntil?: number | null }>
->([])
+const accounts = ref<Account[]>([])
 
 const loadAccounts = async () => {
   accounts.value = await window.api.getAccounts()
@@ -31,8 +37,8 @@ const showBanModal = ref(false)
 const showConfigModal = ref(false)
 const showPathModal = ref(false)
 const showEditNameModal = ref(false)
-const targetAccountForBan = ref<any | null>(null)
-const editableAccountDetails = ref<{ id: string; name: string } | null>(null)
+const targetAccountForBan = ref<Account | null>(null)
+const editableAccountDetails = ref<Pick<Account, 'id' | 'name'> | null>(null)
 
 // ── 环境检测 ────────────────────────────────────────────────
 const driverLoaded = ref(true)
@@ -42,7 +48,7 @@ const wegameExePath = ref<string | null>(null)
 const isLoggingIn = ref(false)
 const loginProgress = ref('')
 const loginError = ref('')
-const targetAccountForLogin = ref<any | null>(null)
+const targetAccountForLogin = ref<Account | null>(null)
 const animationWaitTime = ref(30)
 const isWaitingAnimation = ref(false)
 let animationTimer: any = null
@@ -138,13 +144,13 @@ const handleAccountSubmit = () => {
   loadAccounts()
 }
 
-const handleSetBan = (acc: any) => {
+const handleSetBan = (acc: Account) => {
   targetAccountForBan.value = acc
   showBanModal.value = true
 }
 
-const handleEditName = (acc: any) => {
-  editableAccountDetails.value = { ...acc }
+const handleEditName = (acc: Account) => {
+  editableAccountDetails.value = { id: acc.id, name: acc.name }
   showEditNameModal.value = true
 }
 
@@ -187,6 +193,17 @@ const proceedToInject = async () => {
       loginError.value = res.error || '登录流程触发失败'
     } else {
       loginProgress.value = '登录流程触发完毕，请在游戏中检查。'
+      // 更新上次登录时间
+      if (targetAccountForLogin.value) {
+        const now = Date.now()
+        await window.api.updateLastLoginTime(targetAccountForLogin.value.id, now)
+        const accountIndex = accounts.value.findIndex(
+          (a) => a.id === targetAccountForLogin.value?.id
+        )
+        if (accountIndex !== -1) {
+          accounts.value[accountIndex].lastLoginTime = now
+        }
+      }
     }
   } catch (err: any) {
     loginError.value = err.message
@@ -198,7 +215,7 @@ const proceedToInject = async () => {
   }
 }
 
-const handleSelectAccount = async (acc: any) => {
+const handleSelectAccount = async (acc: Account) => {
   if (isLoggingIn.value) return
 
   targetAccountForLogin.value = acc

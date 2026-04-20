@@ -10,6 +10,8 @@ const api = {
     ipcRenderer.invoke('add-account', name, acc, pass),
   deleteAccount: (id: string) => ipcRenderer.invoke('delete-account', id),
   updateAccountName: (id: string, newName: string) => ipcRenderer.invoke('update-account-name', id, newName),
+  updateLastLoginTime: (id: string, timestamp: number | null) =>
+    ipcRenderer.invoke('update-last-login-time', id, timestamp),
   setBanTime: (id: string, timestamp: number | null) =>
     ipcRenderer.invoke('update-ban-time', id, timestamp),
   getDriverStatus: () => ipcRenderer.invoke('get-driver-status'),
