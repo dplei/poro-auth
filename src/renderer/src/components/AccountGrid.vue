@@ -87,6 +87,7 @@ interface Account {
   account: string
   bannedUntil?: number | null
   lastLoginTime?: number | null
+  createdAt?: number
 }
 
 defineProps<{

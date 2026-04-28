@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createDiscreteApi, darkTheme, dateZhCN, NConfigProvider, zhCN } from 'naive-ui'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AccountGrid from './components/AccountGrid.vue'
 import AddAccountModal from './components/AddAccountModal.vue'
 import BanAccountModal from './components/BanAccountModal.vue'
@@ -17,7 +17,10 @@ interface Account {
   account: string
   bannedUntil?: number | null
   lastLoginTime?: number | null
+  createdAt?: number
 }
+
+type SortMode = 'addTime' | 'availability'
 
 // NaiveUI Discrete API — 用于在模板外触发 message / dialog
 const { message, dialog } = createDiscreteApi(['message', 'dialog'], {
@@ -26,10 +29,23 @@ const { message, dialog } = createDiscreteApi(['message', 'dialog'], {
 
 // ── 账号列表 ────────────────────────────────────────────────
 const accounts = ref<Account[]>([])
+const sortMode = ref<SortMode>('addTime')
 
 const loadAccounts = async () => {
   accounts.value = await window.api.getAccounts()
 }
+
+const sortedAccounts = computed(() => {
+  const now = Date.now()
+  const isBanned = (acc: Account) => !!acc.bannedUntil && acc.bannedUntil > now
+  return [...accounts.value].sort((a, b) => {
+    if (sortMode.value === 'availability') {
+      const diff = (isBanned(a) ? 1 : 0) - (isBanned(b) ? 1 : 0)
+      if (diff !== 0) return diff
+    }
+    return (a.createdAt ?? 0) - (b.createdAt ?? 0)
+  })
+})
 
 // ── 弹窗状态 ────────────────────────────────────────────────
 const showAddModal = ref(false)
@@ -406,8 +422,27 @@ const handleClose = () => window.api.closeWindow()
           <p>AES-256 本地加密直连，请确保 WeGame 与底层驱动已激活</p>
         </div>
 
+        <div class="sort-bar">
+          <div class="sort-group">
+            <button
+              class="sort-btn"
+              :class="{ active: sortMode === 'addTime' }"
+              @click="sortMode = 'addTime'"
+            >
+              添加时间
+            </button>
+            <button
+              class="sort-btn"
+              :class="{ active: sortMode === 'availability' }"
+              @click="sortMode = 'availability'"
+            >
+              可用性
+            </button>
+          </div>
+        </div>
+
         <AccountGrid
-          :accounts="accounts"
+          :accounts="sortedAccounts"
           @add="handleAddAccount"
           @select="handleSelectAccount"
           @delete="handleDeleteAccount"
@@ -629,5 +664,36 @@ const handleClose = () => window.api.closeWindow()
 .section-title p {
   color: var(--text-secondary);
   font-size: 0.95rem;
+}
+
+.sort-group {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sort-btn {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.sort-btn + .sort-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sort-btn.active {
+  background: rgba(99, 102, 241, 0.25);
+  color: var(--accent-color);
+}
+
+.sort-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
 }
 </style>

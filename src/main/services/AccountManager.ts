@@ -10,6 +10,7 @@ export interface AccountData {
   passwordEncrypted: string // 使用 safeStorage 或 aes 加密后的 base64
   bannedUntil?: number | null // 封禁解封时间戳 (ms)，若为空则未被封禁
   lastLoginTime?: number | null // 上次登录时间戳 (ms)
+  createdAt?: number // 账号添加时间戳 (ms)
 }
 
 export class AccountManager {
@@ -95,7 +96,8 @@ export class AccountManager {
       name: item.name,
       account: item.account,
       bannedUntil: item.bannedUntil,
-      lastLoginTime: item.lastLoginTime
+      lastLoginTime: item.lastLoginTime,
+      createdAt: item.createdAt
     }))
   }
 
@@ -112,11 +114,15 @@ export class AccountManager {
 
   public addAccount(name: string, account: string, pass: string) {
     const arr = this.loadAccounts()
+    if (arr.some((a) => a.account === account)) {
+      throw new Error(`账号 ${account} 已存在`)
+    }
     const newData: AccountData = {
       id: crypto.randomUUID(),
       name,
       account,
-      passwordEncrypted: this.encrypt(pass)
+      passwordEncrypted: this.encrypt(pass),
+      createdAt: Date.now()
     }
     arr.push(newData)
     this.save()
