@@ -38,6 +38,20 @@ function createWindow(): void {
   }
 }
 
+// Single instance lock — quit immediately if another instance is already running
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+  app.quit()
+}
+
+app.on('second-instance', () => {
+  const win = BrowserWindow.getAllWindows()[0]
+  if (win) {
+    if (win.isMinimized()) win.restore()
+    win.focus()
+  }
+})
+
 import { accountManager } from './services/AccountManager'
 import { ddDriver } from './services/DDDriverService'
 import { loginFlowAction } from './services/LoginFlowAction'
