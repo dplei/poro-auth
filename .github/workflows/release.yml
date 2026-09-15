@@ -5,6 +5,7 @@ on:
     # 只要您在本地打了形如 v1.0.0 的标签并 push，就会触发这个流水线
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 # 赋予流水线自动发版的写入权限
 permissions:
@@ -52,3 +53,46 @@ jobs:
             dist/latest*.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  mirror:
+    name: Mirror to Qiniu (国内下载)
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      BUCKET: dplay-release
+      PREFIX: poro-auth
+      CDN: https://cdn.suibianwanwan.fun
+    steps:
+      - name: 📥 Download release assets
+        run: gh release download ${{ github.ref_name }} -R ${{ github.repository }} -D dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔧 Install qshell
+        run: |
+          curl -fsSL https://github.com/qiniu/qshell/releases/download/v2.19.13/qshell-v2.19.13-linux-amd64.tar.gz | tar xzO > qshell
+          chmod +x qshell && echo "$PWD" >> "$GITHUB_PATH"
+          ./qshell account ${{ secrets.QINIU_AK }} ${{ secrets.QINIU_SK }} ci
+
+      - name: 📝 Fixed-name copy + latest.json
+        # poro-auth-setup.exe 是网站按钮指向的固定文件名；latest.json 供网站显示版本/大小
+        run: |
+          cd dist
+          exe=$(ls *-setup.exe)
+          cp "$exe" poro-auth-setup.exe
+          jq -n --arg v "${GITHUB_REF_NAME#v}" --arg f "$exe" \
+            --argjson s "$(stat -c%s "$exe")" --arg h "$(sha256sum "$exe" | cut -d' ' -f1)" \
+            --arg t "$(date -u +%FT%TZ)" \
+            '{version:$v,file:$f,size:$s,sha256:$h,publishedAt:$t}' > latest.json
+
+      - name: ☁️ Upload to Qiniu
+        run: |
+          for f in dist/*; do
+            qshell fput "$BUCKET" "$PREFIX/$(basename "$f")" "$f" --overwrite
+          done
+
+      - name: 🔄 Refresh CDN cache
+        # 只有会被覆盖的三个固定文件需要刷；带版本号的文件名每次都是新的
+        run: |
+          printf '%s\n' "$CDN/$PREFIX/latest.yml" "$CDN/$PREFIX/latest.json" "$CDN/$PREFIX/poro-auth-setup.exe" > urls.txt
+          qshell cdnrefresh -i urls.txt

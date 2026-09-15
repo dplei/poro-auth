@@ -48,8 +48,10 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: github
-  owner: dplei
-  repo: poro-auth
+  - provider: generic
+    url: https://cdn.suibianwanwan.fun/poro-auth/
+  - provider: github
+    owner: dplei
+    repo: poro-auth
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
