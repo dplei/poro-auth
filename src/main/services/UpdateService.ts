@@ -86,9 +86,17 @@ export class UpdateService {
     })
   }
 
-  public checkUpdate() {
-    // Only fetch metadata
-    return autoUpdater.checkForUpdates()
+  public async checkUpdate() {
+    // Only fetch metadata. Primary feed is the Qiniu CDN (first publish provider
+    // in electron-builder.yml); fall back to GitHub Releases if it is unreachable.
+    // setFeedURL persists for this process, so downloadUpdate() follows the fallback too.
+    try {
+      return await autoUpdater.checkForUpdates()
+    } catch (err) {
+      log.warn('[UpdateService] CDN check failed, falling back to GitHub:', err)
+      autoUpdater.setFeedURL({ provider: 'github', owner: 'dplei', repo: 'poro-auth' })
+      return autoUpdater.checkForUpdates()
+    }
   }
 
   public downloadUpdate() {
